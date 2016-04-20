@@ -365,7 +365,7 @@
                     $rootScope.hosts = JSON.parse(hosts);
                     $rootScope.requests.host = $rootScope.hosts.active.host;
                 } else {
-                    $rootScope.hosts = {active: $rootScope.requests.host, history: [$rootScope.hosts.defaultHost]};
+                    $rootScope.hosts = {active: $rootScope.requests.host, history: [$rootScope.requests.defaultHost]};
                     localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
                 }
             });
