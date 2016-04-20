@@ -1,6 +1,6 @@
 {
   "host": "http://localhost:8080/",
-
+  "defaultHost": { "label": "localhost", "host": "http://localhost:8080/"},
   "data": {
     "get": {
       "ready": "sources?state=READY",
