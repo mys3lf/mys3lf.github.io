@@ -1,0 +1,13 @@
+logs/*
+!.gitkeep
+node_modules/
+bower_components/
+tmp
+.DS_Store
+.idea
+.bowerrc
+.jshintrc
+.travis.yml
+bower.json
+karma.conf.js
+package.json
