@@ -115,32 +115,35 @@
             $rootScope.setActiveById($routeParams.prefixId);
 
         })
-        .controller("smallListCtrl", function ($rootScope, $scope, $http, $location, $routeParams, storageManager, helper) {
+        .controller("smallListCtrl", function ($rootScope, $scope, $http, $location, $routeParams, storageManager, helper, alertManager) {
 
             $scope.$routeParams = $routeParams;
+
             if ($scope.type != null && $scope.state != null) {
-                if ($rootScope.requests != null && $rootScope.requests[$scope.type] != null && $rootScope.requests[$scope.type]["get"] != null && $rootScope.requests[$scope.type]["get"][$scope.state] != null)
+                if ($rootScope.requests != null && $rootScope.requests[$scope.type] != null && $rootScope.requests[$scope.type]["get"] != null && $rootScope.requests[$scope.type]["get"][$scope.state] != null) {
                     $scope.items = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state);
-                $scope.readOnly = $rootScope.requests[$scope.type]["delete"] == undefined || $rootScope.requests[$scope.type]["delete"][$scope.state] == undefined;
+                    $scope.readOnly = $rootScope.requests[$scope.type]["delete"] == undefined || $rootScope.requests[$scope.type]["delete"][$scope.state] == undefined;
 
-                $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state]).then(function (data) {
+                    $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state]).then(
+                        function successCallback(data) {
+                            data.data.sort(helper.sortById);
 
-                    data.data.sort(helper.sortById)
+                            if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state, data.data)) {
+                                $scope.items = data.data;
+                                $scope.items.sort(helper.sortById);
 
-                    if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state, data.data)) {
-                        $scope.items = data.data;
-                        $scope.items.sort(helper.sortById)
+                                storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state, $scope.items);
+                            }
 
-                        storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state, $scope.items);
-                    }
+                            $scope.navigateTo = function (item) {
+                                $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + item.id);
+                            }
 
-
-                    $scope.navigateTo = function (item) {
-                        $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + item.id);
-                    }
-
-                    Sortable.init()
-                });
+                            Sortable.init()
+                        }, function errorCallback(response) {
+                            alertManager.error("Ooops. Something went wrong! The server might not be available!", response);
+                        });
+                }
             }
         })
         .controller("footerCtrl", function ($scope, $http) {
@@ -155,7 +158,7 @@
                 localStorage.setItem("footer", JSON.stringify(data.data));
             });
         })
-        .controller("detailWindowCtrl", function ($scope, $rootScope, $http, $routeParams, storageManager) {
+        .controller("detailWindowCtrl", function ($scope, $rootScope, $http, $routeParams, storageManager, alertManager) {
             $scope.isArray = angular.isArray;
             $scope.isObject = angular.isObject;
 
@@ -181,19 +184,26 @@
                             url: url,
                             params: item
                         }).then(function successCallback(response) {
+                            alertManager.success("The request was successful!", response);
                             console.log(response);
                         }, function errorCallback(response) {
-                            console.log(response);
+                            alertManager.error("Ooops. Something went wrong!", response);
                         });
-
-
-                        console.log(url);
                     }
                 } else if (type == 'delete') {
                     if ($rootScope.requests[$scope.type]["delete"] != null && $rootScope.requests[$scope.type]["delete"][$routeParams.contentId] != null) {
-                        var url = $rootScope.requests.host + $rootScope.requests[$scope.type]["delete"][$routeParams.contentId];
+                        var url = $rootScope.requests.host + $rootScope.requests[$scope.type]["delete"][$routeParams.contentId] + item;
 
-                        console.log(url);
+                        $http({
+                            method: 'DELETE',
+                            url: url,
+                            params: item
+                        }).then(function successCallback(response) {
+                            alertManager.success("The request was successful!", response);
+                            console.log(response);
+                        }, function errorCallback(response) {
+                            alertManager.error("Ooops. Something went wrong!", response);
+                        });
                     }
                 }
 
@@ -203,18 +213,22 @@
             $rootScope.setDetailData = function (itemId) {
                 $scope.detail = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId);
 
-                $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state] + itemId).then(function (data) {
-                    var detail = {
-                        "label": data.data.id,
-                        "content": data.data
-                    };
+                $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state] + itemId).then(
+                    function successCallback(data) {
+                        var detail = {
+                            "label": data.data.id,
+                            "content": data.data
+                        };
 
-                    if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, detail)) {
-                        $scope.detail = detail;
+                        if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, detail)) {
+                            $scope.detail = detail;
+                        }
+
+                        storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, $scope.detail);
+                    }, function errorCallback(response) {
+                        alertManager.error("Ooops. Something went wrong! The server might not be available!", response);
                     }
-
-                    storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, $scope.detail);
-                });
+                );
 
                 $scope.canCreate = $rootScope.requests[$scope.type]["put"] != null && $rootScope.requests[$scope.type]["put"][$routeParams.contentId] != null;
                 $scope.canDelete = $rootScope.requests[$scope.type]["delete"] != null && $rootScope.requests[$scope.type]["delete"][$routeParams.contentId] != null;
@@ -327,12 +341,14 @@
             }
 
             $rootScope.setHost = function (host) {
-                $rootScope.hosts.active = host;
-                $rootScope.requests.host = host.host;
+                if(host != null) {
+                    $rootScope.hosts.active = host;
+                    $rootScope.requests.host = host.host;
 
-                localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
+                    localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
 
-                $route.reload();
+                    $route.reload();
+                }
             };
 
             $rootScope.addHost = function (host) {
@@ -346,11 +362,13 @@
 
             $rootScope.removeHost = function (i, host) {
                 if (host != null) {
-                    var h = host.trim();
                     $rootScope.hosts.history.splice(i, 1);
-                    localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
-
-                    $route.reload();
+                    if($rootScope.hosts.active.host == host.host) {
+                        $rootScope.setHost($rootScope.hosts.history[0]);
+                    } else {
+                        localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
+                        $route.reload();
+                    }
                 }
             };
 
@@ -365,7 +383,10 @@
                     $rootScope.hosts = JSON.parse(hosts);
                     $rootScope.requests.host = $rootScope.hosts.active.host;
                 } else {
-                    $rootScope.hosts = {active: $rootScope.requests.defaultHost, history: [$rootScope.requests.defaultHost]};
+                    $rootScope.hosts = {
+                        active: $rootScope.requests.defaultHost,
+                        history: [$rootScope.requests.defaultHost]
+                    };
                     localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));
                 }
             });

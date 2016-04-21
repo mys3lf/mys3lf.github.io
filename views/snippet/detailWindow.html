@@ -3,7 +3,7 @@
         <div class="panel-heading">
             <h3 class="panel-title">{{detail.label}}
                 <span id="detail-buttons">
-                    <a href="javascript:void(0)" data-ng-show="canDelete == true" data-ng-click="performAction(detail, 'delete')" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
+                    <a href="javascript:void(0)" data-ng-show="canDelete == true" data-ng-click="performAction(detail.content.id, 'delete')" class="btn btn-danger btn-xs"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></a>
                     <a href="javascript:void(0)" data-ng-show="canCreate == true" data-ng-click="performAction(detail, 'add')" class="btn btn-success btn-xs"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span></a>
                 </span>
 

@@ -1,5 +1,8 @@
 <div>
     <div class="row">
+        <div ng-include="'views/snippet/alert.html'"></div>
+    </div>
+    <div class="row">
         <div ng-include="'views/pages/configuration/hosts.html'"></div>
         <small-list columns="6" label="Connected Datasources" type="data" state="ready"></small-list>
         <small-list columns="6" label="Trained Recommender" type="recommender" state="ready"></small-list>
