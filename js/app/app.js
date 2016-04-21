@@ -115,6 +115,53 @@
             $rootScope.setActiveById($routeParams.prefixId);
 
         })
+        .controller("experimentCreateCtrl", function ($scope, $rootScope, $http, $routeParams, helper, alertManager) {
+            $scope.experimentTemplate = 'views/pages/experiments/snippets/' + $routeParams.instanceId + '.html';
+
+            $scope.createExperiments = function(data) {
+
+                try {
+                    var d = JSON.parse(data);
+
+                    if(!angular.isArray(d)){
+                        $scope.creation = {"experiments": [d]};
+                    } else {
+                        $scope.creation = {"experiments": d};
+                    }
+
+                    if($rootScope.requests["experiments"] != null && $rootScope.requests["experiments"]["put"] != null && $rootScope.requests["experiments"]["put"]["item"] != null) {
+                        var url =  $rootScope.requests.host + $rootScope.requests["experiments"]["put"]["item"];
+
+                        for(var i in $scope.creation.experiments) {
+                            var item = $scope.creation.experiments[i];
+                            item.state = 'waiting';
+                            item.message = '';
+                            $http({
+                                method: 'PUT',
+                                url: url,
+                                config: i,
+                                data: $.param(helper.flatData(item)),
+                                headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                            }).then(function successCallback(response) {
+                                console.log(response);
+                                $scope.creation.experiments[response.config.config].state = "success";
+                            }, function errorCallback(response) {
+                                $scope.creation.experiments[response.config.config].message = response.data.message;
+                                $scope.creation.experiments[response.config.config].state = "danger";
+                            });
+                        }
+
+                    }
+
+
+
+                } catch (e) {
+                    return alertManager.error(e.toString());
+                }
+
+            };
+
+        })
         .controller("smallListCtrl", function ($rootScope, $scope, $http, $location, $routeParams, storageManager, helper, alertManager) {
 
             $scope.$routeParams = $routeParams;
@@ -185,7 +232,8 @@
                         $http({
                             method: 'PUT',
                             url: url,
-                            params: item
+                            data: $.param(item),
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(function successCallback(response) {
                             alertManager.success("The request was successful!", response);
                         }, function errorCallback(response) {
@@ -199,7 +247,8 @@
                         $http({
                             method: 'DELETE',
                             url: url,
-                            params: item
+                            data: $.param(item),
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'}
                         }).then(function successCallback(response) {
                             alertManager.success("The request was successful!", response);
                         }, function errorCallback(response) {

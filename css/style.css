@@ -83,3 +83,7 @@
 .panel-title .loading {
     height: 6px;
 }
+
+#bulk {
+    min-height: 300px;
+}
