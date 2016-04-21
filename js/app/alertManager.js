@@ -26,8 +26,12 @@
                 clear: function () {
                     $rootScope.message = null;
                 }
-            }
+            };
 ;
+            $rootScope.removeMessage = function(){
+                alertManager.clear();
+            };
+
             $rootScope.$on('$routeChangeStart', function(next, current) {
                 alertManager.clear();
             });

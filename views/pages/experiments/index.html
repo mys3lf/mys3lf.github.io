@@ -1,5 +1,7 @@
 <div>
     <div ng-include="'views/pages/experiments/snippets/controls.html'"></div>
 
-    <experiments-table></experiments-table>
+    <small-list columns="6" label="Finished Experiments" type="experiments" state="finished"></small-list>
+    <small-list columns="6" label="Running Experiments" type="experiments" state="running"></small-list>
+    <small-list columns="6" label="Running Experiments" type="experiments" state="waiting"></small-list>
 </div>
