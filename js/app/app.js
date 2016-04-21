@@ -123,6 +123,7 @@
                 if ($rootScope.requests != null && $rootScope.requests[$scope.type] != null && $rootScope.requests[$scope.type]["get"] != null && $rootScope.requests[$scope.type]["get"][$scope.state] != null) {
                     $scope.items = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state);
                     $scope.readOnly = $rootScope.requests[$scope.type]["delete"] == undefined || $rootScope.requests[$scope.type]["delete"][$scope.state] == undefined;
+                    $scope.listIsLoading = true;
 
                     $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state]).then(
                         function successCallback(data) {
@@ -140,6 +141,8 @@
                             }
 
                             Sortable.init()
+
+                            $scope.listIsLoading = false;
                         }, function errorCallback(response) {
                             alertManager.error("Ooops. Something went wrong! The server might not be available!", response);
                         });
@@ -185,7 +188,6 @@
                             params: item
                         }).then(function successCallback(response) {
                             alertManager.success("The request was successful!", response);
-                            console.log(response);
                         }, function errorCallback(response) {
                             alertManager.error("Ooops. Something went wrong!", response);
                         });
@@ -200,7 +202,6 @@
                             params: item
                         }).then(function successCallback(response) {
                             alertManager.success("The request was successful!", response);
-                            console.log(response);
                         }, function errorCallback(response) {
                             alertManager.error("Ooops. Something went wrong!", response);
                         });
@@ -213,6 +214,8 @@
             $rootScope.setDetailData = function (itemId) {
                 $scope.detail = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId);
 
+                $scope.detailIsloading = true;
+
                 $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state] + itemId).then(
                     function successCallback(data) {
                         var detail = {
@@ -220,9 +223,12 @@
                             "content": data.data
                         };
 
+
                         if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, detail)) {
                             $scope.detail = detail;
                         }
+
+                        $scope.detailIsloading = false;
 
                         storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state + itemId, $scope.detail);
                     }, function errorCallback(response) {
@@ -371,7 +377,6 @@
                     }
                 }
             };
-
 
             $http.get("data/requests.json").then(function (data) {
                 $rootScope.requests = data.data;

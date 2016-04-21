@@ -33,7 +33,7 @@
 }
 
 #detail-buttons > a
-#script-buttons > a, {
+#script-buttons > a {
   margin: 0 5px;
 }
 
@@ -78,4 +78,8 @@
 
 .tree .value  {
     color: #5cb85c;
+}
+
+.panel-title .loading {
+    height: 6px;
 }
