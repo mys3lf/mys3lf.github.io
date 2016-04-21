@@ -6,7 +6,7 @@
         /***********************
          *     PROVIDER
          ***********************/
-        .factory("helper", function () {
+        .factory("helper", function ($http) {
             return {
                 sortById: function (a, b) {
                     if (a.id < b.id) return -1;
@@ -28,6 +28,14 @@
                             result[prefix + i] = data[i];
                         }
                     }
+                },
+                getData: function(container, token, host, url) {
+                    $http({
+                        method: 'GET',
+                        url: host + url
+                    }).then(function successCallback(response) {
+                        container[token] = response.data;
+                    });
                 }
             }
         });

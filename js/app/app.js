@@ -115,24 +115,98 @@
             $rootScope.setActiveById($routeParams.prefixId);
 
         })
+        .controller("overviewCtrl", function ($scope, $location, $rootScope, $routeParams, helper) {
+            var page = ($routeParams.instanceId != null ? parseInt($routeParams.instanceId, 10) : 1);
+
+            $scope.overviewTemplate = 'views/pages/experiments/snippets/overview/' + page + '.html';
+
+            $rootScope.overview = {};
+
+            $rootScope.overview.hosts = $rootScope.hosts.history;
+
+            $rootScope.overview.activeHosts = [];
+            if ($routeParams.hosts != null) {
+                $rootScope.overview.activeHosts = $routeParams.hosts.split(",");
+            }
+
+            for (var i in $scope.overview.hosts) {
+                $rootScope.overview.hosts[i].state = $rootScope.overview.activeHosts.indexOf($rootScope.overview.hosts[i].label) > -1 ? "success" : "";
+            }
+
+            $rootScope.overview.toggleHost = function (host) {
+                if (host.state == "success") {
+                    host.state = "";
+                    var index = $rootScope.overview.activeHosts.indexOf(host.label);
+                    if (index > -1) {
+                        $rootScope.overview.activeHosts.splice(index, 1);
+                    }
+
+                } else {
+                    host.state = "success";
+                    $rootScope.overview.activeHosts.push(host.label);
+                }
+            };
+
+
+            $rootScope.overview.toggleSource = function (item) {
+                if (item.length > 0) {
+                    var active = item[0].state == "success";
+
+                    for (var i in item) {
+                        item[i].state = active ? '' : 'success';
+                    }
+
+                    localStorage.setItem("overview.experiments", JSON.stringify($scope.overview.experiments));
+                }
+            };
+
+            $rootScope.overview.toggleExp = function (item) {
+                var active = item.state == "success";
+                item.state = active ? '' : 'success';
+
+                localStorage.setItem("overview.experiments", JSON.stringify($scope.overview.experiments));
+            };
+
+            if (page == 2 && $rootScope.overview.activeHosts.length > 0) {
+
+                $scope.overview.experiments = {};
+
+                localStorage.removeItem("overview.experiments");
+
+                for (var i in $rootScope.overview.hosts) {
+                    if ($rootScope.overview.hosts[i].state == "success") {
+                        helper.getData($scope.overview.experiments, $rootScope.overview.hosts[i].label, $rootScope.overview.hosts[i].host, $rootScope.requests["experiments"]["get"]["finished"]);
+                    }
+                }
+            } else if (page == 3) {
+                $scope.overview.experiments = JSON.parse(localStorage.getItem("overview.experiments"));
+            }
+
+            $rootScope.overview.nextPage = function () {
+                $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + (++page) + "?hosts=" + $rootScope.overview.activeHosts.join(","));
+            };
+
+            $rootScope.overview.prevPage = function () {
+                $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + (--page) + "?hosts=" + $rootScope.overview.activeHosts.join(","));
+            };
+        })
         .controller("experimentCreateCtrl", function ($scope, $rootScope, $http, $routeParams, helper, alertManager) {
             $scope.experimentTemplate = 'views/pages/experiments/snippets/' + $routeParams.instanceId + '.html';
 
-            $scope.createExperiments = function(data) {
-
+            $scope.createExperiments = function (data) {
                 try {
                     var d = JSON.parse(data);
 
-                    if(!angular.isArray(d)){
+                    if (!angular.isArray(d)) {
                         $scope.creation = {"experiments": [d]};
                     } else {
                         $scope.creation = {"experiments": d};
                     }
 
-                    if($rootScope.requests["experiments"] != null && $rootScope.requests["experiments"]["put"] != null && $rootScope.requests["experiments"]["put"]["item"] != null) {
-                        var url =  $rootScope.requests.host + $rootScope.requests["experiments"]["put"]["item"];
+                    if ($rootScope.requests["experiments"] != null && $rootScope.requests["experiments"]["put"] != null && $rootScope.requests["experiments"]["put"]["item"] != null) {
+                        var url = $rootScope.requests.host + $rootScope.requests["experiments"]["put"]["item"];
 
-                        for(var i in $scope.creation.experiments) {
+                        for (var i in $scope.creation.experiments) {
                             var item = $scope.creation.experiments[i];
                             item.state = 'waiting';
                             item.message = '';
@@ -145,6 +219,7 @@
                             }).then(function successCallback(response) {
                                 console.log(response);
                                 $scope.creation.experiments[response.config.config].state = "success";
+                                $scope.creation.experiments[response.config.config].message = response.data.message;
                             }, function errorCallback(response) {
                                 $scope.creation.experiments[response.config.config].message = response.data.message;
                                 $scope.creation.experiments[response.config.config].state = "danger";
@@ -154,12 +229,14 @@
                     }
 
 
-
                 } catch (e) {
                     return alertManager.error(e.toString());
                 }
-
             };
+
+            $http.get("data/experimentConfig.json").then(function (data) {
+                $scope.experimentConfig = data.data;
+            });
 
         })
         .controller("smallListCtrl", function ($rootScope, $scope, $http, $location, $routeParams, storageManager, helper, alertManager) {
@@ -256,8 +333,6 @@
                         });
                     }
                 }
-
-                console.log(type, item);
             }
 
             $rootScope.setDetailData = function (itemId) {
@@ -304,12 +379,12 @@
                 return false;
             }
 
-            function getExperiments(experimentIds, $scope) {
+            function getExperiments(host, experimentIds, $scope) {
                 $scope.sources = {};
                 for (var i in experimentIds) {
                     var id = experimentIds[i];
 
-                    $http.get($rootScope.requests.host + $rootScope.requests["experiments"]["get"]["item"] + id).then(function (data) {
+                    $http.get(host.host + $rootScope.requests["experiments"]["get"]["item"] + id).then(function (data) {
 
                         var exp = data.data;
 
@@ -358,9 +433,33 @@
                 }
             }
 
+            var experiments = JSON.parse(localStorage.getItem("overview.experiments"));
 
             if ($routeParams.experimentIds != null && $routeParams.experimentIds.length > 0) {
-                getExperiments($routeParams.experimentIds.split(","), $scope);
+                getExperiments($rootScope.requests.host, $routeParams.experimentIds.split(","), $scope);
+            } else if (experiments != null) {
+
+                for (var hostLabel in experiments) {
+                    var host = null;
+                    for (var i in $rootScope.hosts.history) {
+                        if ($rootScope.hosts.history[i].label == hostLabel) {
+                            host = $rootScope.hosts.history[i];
+                            break;
+                        }
+                    }
+
+                    if (host != null) {
+                        var ids = [];
+                        for (var i in experiments[hostLabel]) {
+                            var exp = experiments[hostLabel][i];
+                            if (exp.state == "success") {
+                                ids.push(exp.id);
+                            }
+                        }
+
+                        getExperiments(host, ids, $scope);
+                    }
+                }
             } else {
                 $http.get($rootScope.requests.host + $rootScope.requests["experiments"]["get"]["finished"]).then(function (data) {
                     var ids = [];
@@ -369,8 +468,9 @@
                         ids.push(exp.id);
                     }
 
-                    getExperiments(ids, $scope);
+                    getExperiments($rootScope.requests.host, ids, $scope);
                 });
+
             }
         })
         .controller("topNavCtrl", function ($rootScope, $route, $http, $routeParams) {
@@ -396,7 +496,7 @@
             }
 
             $rootScope.setHost = function (host) {
-                if(host != null) {
+                if (host != null) {
                     $rootScope.hosts.active = host;
                     $rootScope.requests.host = host.host;
 
@@ -418,7 +518,7 @@
             $rootScope.removeHost = function (i, host) {
                 if (host != null) {
                     $rootScope.hosts.history.splice(i, 1);
-                    if($rootScope.hosts.active.host == host.host) {
+                    if ($rootScope.hosts.active.host == host.host) {
                         $rootScope.setHost($rootScope.hosts.history[0]);
                     } else {
                         localStorage.setItem("hosts", JSON.stringify($rootScope.hosts));

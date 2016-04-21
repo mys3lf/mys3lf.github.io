@@ -1,0 +1,35 @@
+<div>
+    <h2>
+        Hosts
+    </h2>
+    <h3>
+        Please choose the host which content should be used
+    </h3>
+
+    <table class="table table-striped table-hover" data-sortable>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>
+                Label
+            </th>
+            <th>
+                Host
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr data-ng-repeat="(key, item) in overview.hosts track by $index" data-ng-click="overview.toggleHost(item)" class="{{item.state}}">
+            <td>{{key}}</td>
+            <td>
+                {{item.label}}
+            </td>
+            <td>
+                {{item.host}}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a href="" class="btn btn-danger" data-ng-click="overview.nextPage()">Next</a>
+</div>

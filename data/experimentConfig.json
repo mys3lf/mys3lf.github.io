@@ -1,0 +1,81 @@
+[
+  {
+    "description": "",
+    "key": "experiment-id",
+    "options": [],
+    "requirement": "Required",
+    "type": "String",
+    "value": ""
+  },
+  {
+    "description": "",
+    "key": "source-id",
+    "options": {
+      "list": "/sources?state=READY"
+    },
+    "requirement": "Required",
+    "type": "Options",
+    "value": ""
+  },
+  {
+    "description": "",
+    "key": "split-type",
+    "options": [
+      "simple",
+      "n-fold"
+    ],
+    "requirement": "Required",
+    "type": "Options",
+    "value": ""
+  },
+  {
+    "description": "",
+    "key": "splitter-id",
+    "options": {
+      "list": "/experiments/splitters",
+      "content": "/experiments/splitters/{0}"
+    },
+    "requirement": "Required",
+    "type": "ContentOptions",
+    "enumerable": true,
+    "value": ""
+  },
+  {
+    "description": "",
+    "key": "runThroughAllItems",
+    "requirement": "Optional",
+    "type": "Boolean",
+    "value": "false"
+  },
+  {
+    "description": "",
+    "key": "maxRelevantItemCount",
+    "requirement": "Optional",
+    "type": "Integer",
+    "value": "false"
+  },
+  {
+    "description": "",
+    "key": "rec-id",
+    "options": {
+      "list": "/train/?state=AVAILABLE",
+      "content": "/train/{0}"
+    },
+    "enumerable": true,
+    "requirement": "Required",
+    "type": "ContentOptions",
+    "value": ""
+  },
+  {
+    "description": "",
+    "key": "metric-id",
+    "options": {
+      "list": "/experiments/metrics/",
+      "content": "/experiments/metrics/{0}"
+    },
+    "enumerable": true,
+    "requirement": "Required",
+    "type": "ContentOptions",
+    "value": ""
+  }
+]
