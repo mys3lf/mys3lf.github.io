@@ -24,6 +24,10 @@
                     templateUrl: 'views/pages/start.html',
                     controller: "startCtrl"
                 })
+                .when('/:prefixId/:contentId/:typeId/:instanceId', {
+                    templateUrl: 'views/pages/start.html',
+                    controller: "startCtrl"
+                })
         })
 
         /***********************
@@ -107,13 +111,13 @@
          *     CONTROLLER
          ***********************/
         .controller("startCtrl", function ($scope, $rootScope, $routeParams) {
+            console.log($routeParams);
 
             $scope.config = {
-                template: "views/pages/" + $routeParams.prefixId + "/" + ($routeParams.contentId != null ? $routeParams.contentId : "index") + ".html",
+                template: "views/pages/" + $routeParams.prefixId + "/" + ($routeParams.contentId != null ? $routeParams.contentId : "index")  + ($routeParams.typeId != null ? ("/" + $routeParams.typeId) : "") + ".html",
             };
 
             $rootScope.setActiveById($routeParams.prefixId);
-
         })
         .controller("overviewCtrl", function ($scope, $location, $rootScope, $routeParams, helper) {
             var page = ($routeParams.instanceId != null ? parseInt($routeParams.instanceId, 10) : 1);
@@ -243,34 +247,43 @@
 
             $scope.$routeParams = $routeParams;
 
-            if ($scope.type != null && $scope.state != null) {
-                if ($rootScope.requests != null && $rootScope.requests[$scope.type] != null && $rootScope.requests[$scope.type]["get"] != null && $rootScope.requests[$scope.type]["get"][$scope.state] != null) {
-                    $scope.items = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state);
-                    $scope.readOnly = $rootScope.requests[$scope.type]["delete"] == undefined || $rootScope.requests[$scope.type]["delete"][$scope.state] == undefined;
-                    $scope.listIsLoading = true;
 
-                    $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state]).then(
-                        function successCallback(data) {
-                            data.data.sort(helper.sortById);
+            function load(){
+                if ($scope.type != null && $scope.state != null) {
+                    if ($rootScope.requests != null && $rootScope.requests[$scope.type] != null && $rootScope.requests[$scope.type]["get"] != null && $rootScope.requests[$scope.type]["get"][$scope.state] != null) {
+                        $scope.items = storageManager.get($rootScope.requests.host + $scope.type + "get" + $scope.state);
+                        $scope.readOnly = $rootScope.requests[$scope.type]["delete"] == undefined || $rootScope.requests[$scope.type]["delete"][$scope.state] == undefined;
+                        $scope.listIsLoading = true;
 
-                            if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state, data.data)) {
-                                $scope.items = data.data;
-                                $scope.items.sort(helper.sortById);
+                        $http.get($rootScope.requests.host + $rootScope.requests[$scope.type]["get"][$scope.state]).then(
+                            function successCallback(data) {
+                                data.data.sort(helper.sortById);
 
-                                storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state, $scope.items);
-                            }
+                                if (!storageManager.equal($rootScope.requests.host + $scope.type + "get" + $scope.state, data.data)) {
+                                    $scope.items = data.data;
+                                    $scope.items.sort(helper.sortById);
 
-                            $scope.navigateTo = function (item) {
-                                $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + item.id);
-                            }
+                                    storageManager.put($rootScope.requests.host + $scope.type + "get" + $scope.state, $scope.items);
+                                }
 
-                            Sortable.init()
+                                $scope.navigateTo = function (item) {
+                                    $location.url("/" + $routeParams.prefixId + "/" + $routeParams.contentId + "/" + item.id);
+                                }
 
-                            $scope.listIsLoading = false;
-                        }, function errorCallback(response) {
-                            alertManager.error("Ooops. Something went wrong! The server might not be available!", response);
-                        });
+                                Sortable.init()
+
+                                $scope.listIsLoading = false;
+                            }, function errorCallback(response) {
+                                alertManager.error("Ooops. Something went wrong! The server might not be available!", response);
+                            });
+                    }
                 }
+            }
+
+            load();
+
+            $scope.refresh = function(){
+                load();
             }
         })
         .controller("footerCtrl", function ($scope, $http) {
@@ -332,6 +345,8 @@
                             alertManager.error("Ooops. Something went wrong!", response);
                         });
                     }
+                } else if (type == 'refresh') {
+                    $rootScope.setDetailData(item);
                 }
             }
 

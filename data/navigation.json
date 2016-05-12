@@ -77,6 +77,16 @@
           "link": "onlineexperiments/training"
         }
       ]
+    },
+    {
+      "label": "Addons",
+      "link": "addons",
+      "items": [
+        {
+          "label": "Cron Jobs",
+          "link": "addons/cronjobs"
+        }
+      ]
     }
   ]
 }

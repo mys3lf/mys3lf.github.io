@@ -58,6 +58,21 @@
     "get":{
       "running": "onlineexperiments?state=RUNNING"
     }
+  },
+  "cronjobs": {
+    "get":{
+      "running": "addons/cronjobs?state=RUNNING",
+      "available": "addons/cronjobs?state=AVAILABLE",
+      "item": "addons/cronjobs/"
+    },
+    "delete":{
+      "running":  "addons/cronjobs/",
+      "item": "addons/cronjobs/"
+    },
+    "put":{
+      "available":  "addons/cronjobs/",
+      "item": "addons/cronjobs/"
+    }
   }
 }
 
