@@ -6,7 +6,7 @@
       "ready": "sources?state=READY",
       "connecting": "sources?state=CONNECTING",
       "available": "sources?state=AVAILABLE",
-      "item": "sources/"
+      "item": "data/sources/"
     },
     "put": {
       "available": "sources/"
