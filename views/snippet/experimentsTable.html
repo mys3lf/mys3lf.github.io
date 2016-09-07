@@ -9,17 +9,17 @@
                     <thead>
                         <tr>
                             <th><span class="ellipsis">Algorithm</span></th>
-                            <th data-ng-repeat="metric in source.metrics">
+                            <th data-ng-repeat="metric in source.metrics  track by $index">
                                 <span class="ellipsis">{{metric}}</span>
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr data-ng-repeat="algorithm in source.algorithms">
+                        <tr data-ng-repeat="algorithm in source.algorithms track by $index">
                             <td class="name">
                                 <span class="ellipsis">{{algorithm.name}}</span>
                             </td>
-                            <td data-ng-repeat="result in algorithm.results">
+                            <td data-ng-repeat="result in algorithm.results  track by $index">
                                 <span class="ellipsis" ng-attr-title="{{result}}">{{result}}</span>
                             </td>
                         </tr>
